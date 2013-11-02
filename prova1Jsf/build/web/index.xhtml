@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <h:head>
+        <title>Facelet Title</title>
+    </h:head>
+    <h:body>
+        <h:outputText value="#{pagamentoMB.mensagem}"/>
+        <h:form>
+            ID <h:inputText value="#{pagamentoMB.pg.id}" /> <br/>
+            Descrição <h:inputText value="#{pagamentoMB.pg.descricao}"/><br/>
+            Data <h:inputText value="#{pagamentoMB.pg.dataPag}"/><br/>
+            Valor <h:inputText value="#{pagamentoMB.pg.valor}"/><br/>
+            <br/>
+            <h:commandButton action="#{pagamentoMB.inserir()}" value="Inserir"/>
+            <h:commandButton action="#{pagamentoMB.alterar()}" value="Alterar"/>
+            <h:commandButton action="#{pagamentoMB.excluir()}" value="Excluir"/><br/>
+            <h:commandButton action="#{pagamentoMB.pesquisarTodos()}" value="PesquisarTodos"/>
+            <h:commandButton action="#{pagamentoMB.relatorio()}" value="Relatorio"/><br/><br/>
+        </h:form>
+        <h:form>
+            <h:dataTable value="#{pagamentoMB.contas}" var="contas" border="1">
+                <h:column>
+                    <f:facet name="header">ID</f:facet>
+                    #{contas.id}
+                </h:column>
+                <h:column>
+                    <f:facet name="header">DESCRICAO</f:facet>
+                    #{contas.descricao}
+                </h:column>
+                <h:column>
+                    <f:facet name="header">DATAPAG</f:facet>
+                    #{contas.dataPag}
+                </h:column>
+                <h:column>
+                    <f:facet name="header">VALOR</f:facet>
+                    #{contas.valor}
+                </h:column>
+            </h:dataTable>
+        </h:form>
+    </h:body>
+</html>
+
