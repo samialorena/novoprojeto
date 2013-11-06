@@ -13,6 +13,7 @@ import javax.persistence.Query;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
+import modelo.Item;
 import modelo.Tipo;
 
 /**
@@ -35,7 +36,16 @@ public class TipoJpaController implements Serializable {
         try {
             em = getEntityManager();
             em.getTransaction().begin();
+            Item item = tipo.getItem();
+            if (item != null) {
+                item = em.getReference(item.getClass(), item.getId());
+                tipo.setItem(item);
+            }
             em.persist(tipo);
+            if (item != null) {
+                item.getTipos().add(tipo);
+                item = em.merge(item);
+            }
             em.getTransaction().commit();
         } finally {
             if (em != null) {
@@ -49,7 +59,22 @@ public class TipoJpaController implements Serializable {
         try {
             em = getEntityManager();
             em.getTransaction().begin();
+            Tipo persistentTipo = em.find(Tipo.class, tipo.getId());
+            Item itemOld = persistentTipo.getItem();
+            Item itemNew = tipo.getItem();
+            if (itemNew != null) {
+                itemNew = em.getReference(itemNew.getClass(), itemNew.getId());
+                tipo.setItem(itemNew);
+            }
             tipo = em.merge(tipo);
+            if (itemOld != null && !itemOld.equals(itemNew)) {
+                itemOld.getTipos().remove(tipo);
+                itemOld = em.merge(itemOld);
+            }
+            if (itemNew != null && !itemNew.equals(itemOld)) {
+                itemNew.getTipos().add(tipo);
+                itemNew = em.merge(itemNew);
+            }
             em.getTransaction().commit();
         } catch (Exception ex) {
             String msg = ex.getLocalizedMessage();
@@ -78,6 +103,11 @@ public class TipoJpaController implements Serializable {
                 tipo.getId();
             } catch (EntityNotFoundException enfe) {
                 throw new NonexistentEntityException("The tipo with id " + id + " no longer exists.", enfe);
+            }
+            Item item = tipo.getItem();
+            if (item != null) {
+                item.getTipos().remove(tipo);
+                item = em.merge(item);
             }
             em.remove(tipo);
             em.getTransaction().commit();

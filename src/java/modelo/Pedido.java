@@ -5,11 +5,14 @@
 package modelo;
 
 import java.io.Serializable;
+import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 
 /**
  *
@@ -26,11 +29,10 @@ public class Pedido implements Serializable {
     private int quantidade;
     //será que tem??
     private double valor;
-    @ManyToOne
-    private Garcom garcom;
-    @ManyToOne
-    private Caixa caixa;    
-
+    @OneToMany
+    @JoinColumn(name="caixaId")
+    private List<Caixa> caixas;
+    
     public Long getId() {
         return id;
     }
@@ -88,20 +90,7 @@ public class Pedido implements Serializable {
         this.valor = valor;
     }
 
-    public Garcom getGarcom() {
-        return garcom;
+    public void addCaixa(Caixa caixa) {
+        caixas.add(caixa);
     }
-
-    public void setGarcom(Garcom garcom) {
-        this.garcom = garcom;
-    }
-
-    public Caixa getCaixa() {
-        return caixa;
-    }
-
-    public void setCaixa(Caixa caixa) {
-        this.caixa = caixa;
-    }
-    
 }

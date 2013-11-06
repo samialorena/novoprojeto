@@ -9,20 +9,19 @@ import java.io.Serializable;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Query;
 import javax.persistence.EntityNotFoundException;
+import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import modelo.Menu;
-import modelo.Pedido;
 
 /**
  *
  * @author Samia
  */
-public class MenuJpaController implements Serializable {
+public class MenuJpaController1 implements Serializable {
 
-    public MenuJpaController(EntityManagerFactory emf) {
+    public MenuJpaController1(EntityManagerFactory emf) {
         this.emf = emf;
     }
     private EntityManagerFactory emf = null;
@@ -36,21 +35,7 @@ public class MenuJpaController implements Serializable {
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            Pedido pedido = menu.getPedido();
-            if (pedido != null) {
-                pedido = em.getReference(pedido.getClass(), pedido.getId());
-                menu.setPedido(pedido);
-            }
             em.persist(menu);
-            if (pedido != null) {
-                Menu oldMenuOfPedido = pedido.getMenu();
-                if (oldMenuOfPedido != null) {
-                    oldMenuOfPedido.setPedido(null);
-                    oldMenuOfPedido = em.merge(oldMenuOfPedido);
-                }
-                pedido.setMenu(menu);
-                pedido = em.merge(pedido);
-            }
             em.getTransaction().commit();
         } finally {
             if (em != null) {
@@ -64,27 +49,7 @@ public class MenuJpaController implements Serializable {
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            Menu persistentMenu = em.find(Menu.class, menu.getId());
-            Pedido pedidoOld = persistentMenu.getPedido();
-            Pedido pedidoNew = menu.getPedido();
-            if (pedidoNew != null) {
-                pedidoNew = em.getReference(pedidoNew.getClass(), pedidoNew.getId());
-                menu.setPedido(pedidoNew);
-            }
             menu = em.merge(menu);
-            if (pedidoOld != null && !pedidoOld.equals(pedidoNew)) {
-                pedidoOld.setMenu(null);
-                pedidoOld = em.merge(pedidoOld);
-            }
-            if (pedidoNew != null && !pedidoNew.equals(pedidoOld)) {
-                Menu oldMenuOfPedido = pedidoNew.getMenu();
-                if (oldMenuOfPedido != null) {
-                    oldMenuOfPedido.setPedido(null);
-                    oldMenuOfPedido = em.merge(oldMenuOfPedido);
-                }
-                pedidoNew.setMenu(menu);
-                pedidoNew = em.merge(pedidoNew);
-            }
             em.getTransaction().commit();
         } catch (Exception ex) {
             String msg = ex.getLocalizedMessage();
@@ -113,11 +78,6 @@ public class MenuJpaController implements Serializable {
                 menu.getId();
             } catch (EntityNotFoundException enfe) {
                 throw new NonexistentEntityException("The menu with id " + id + " no longer exists.", enfe);
-            }
-            Pedido pedido = menu.getPedido();
-            if (pedido != null) {
-                pedido.setMenu(null);
-                pedido = em.merge(pedido);
             }
             em.remove(menu);
             em.getTransaction().commit();

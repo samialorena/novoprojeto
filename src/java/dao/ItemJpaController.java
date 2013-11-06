@@ -6,13 +6,15 @@ package dao;
 
 import dao.exceptions.NonexistentEntityException;
 import java.io.Serializable;
-import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
+import modelo.Tipo;
+import java.util.ArrayList;
+import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import modelo.Item;
 
 /**
@@ -31,11 +33,29 @@ public class ItemJpaController implements Serializable {
     }
 
     public void create(Item item) {
+        if (item.getTipos() == null) {
+            item.setTipos(new ArrayList<Tipo>());
+        }
         EntityManager em = null;
         try {
             em = getEntityManager();
             em.getTransaction().begin();
+            List<Tipo> attachedTipos = new ArrayList<Tipo>();
+            for (Tipo tiposTipoToAttach : item.getTipos()) {
+                tiposTipoToAttach = em.getReference(tiposTipoToAttach.getClass(), tiposTipoToAttach.getId());
+                attachedTipos.add(tiposTipoToAttach);
+            }
+            item.setTipos(attachedTipos);
             em.persist(item);
+            for (Tipo tiposTipo : item.getTipos()) {
+                Item oldItemOfTiposTipo = tiposTipo.getItem();
+                tiposTipo.setItem(item);
+                tiposTipo = em.merge(tiposTipo);
+                if (oldItemOfTiposTipo != null) {
+                    oldItemOfTiposTipo.getTipos().remove(tiposTipo);
+                    oldItemOfTiposTipo = em.merge(oldItemOfTiposTipo);
+                }
+            }
             em.getTransaction().commit();
         } finally {
             if (em != null) {
@@ -49,7 +69,34 @@ public class ItemJpaController implements Serializable {
         try {
             em = getEntityManager();
             em.getTransaction().begin();
+            Item persistentItem = em.find(Item.class, item.getId());
+            List<Tipo> tiposOld = persistentItem.getTipos();
+            List<Tipo> tiposNew = item.getTipos();
+            List<Tipo> attachedTiposNew = new ArrayList<Tipo>();
+            for (Tipo tiposNewTipoToAttach : tiposNew) {
+                tiposNewTipoToAttach = em.getReference(tiposNewTipoToAttach.getClass(), tiposNewTipoToAttach.getId());
+                attachedTiposNew.add(tiposNewTipoToAttach);
+            }
+            tiposNew = attachedTiposNew;
+            item.setTipos(tiposNew);
             item = em.merge(item);
+            for (Tipo tiposOldTipo : tiposOld) {
+                if (!tiposNew.contains(tiposOldTipo)) {
+                    tiposOldTipo.setItem(null);
+                    tiposOldTipo = em.merge(tiposOldTipo);
+                }
+            }
+            for (Tipo tiposNewTipo : tiposNew) {
+                if (!tiposOld.contains(tiposNewTipo)) {
+                    Item oldItemOfTiposNewTipo = tiposNewTipo.getItem();
+                    tiposNewTipo.setItem(item);
+                    tiposNewTipo = em.merge(tiposNewTipo);
+                    if (oldItemOfTiposNewTipo != null && !oldItemOfTiposNewTipo.equals(item)) {
+                        oldItemOfTiposNewTipo.getTipos().remove(tiposNewTipo);
+                        oldItemOfTiposNewTipo = em.merge(oldItemOfTiposNewTipo);
+                    }
+                }
+            }
             em.getTransaction().commit();
         } catch (Exception ex) {
             String msg = ex.getLocalizedMessage();
@@ -78,6 +125,11 @@ public class ItemJpaController implements Serializable {
                 item.getId();
             } catch (EntityNotFoundException enfe) {
                 throw new NonexistentEntityException("The item with id " + id + " no longer exists.", enfe);
+            }
+            List<Tipo> tipos = item.getTipos();
+            for (Tipo tiposTipo : tipos) {
+                tiposTipo.setItem(null);
+                tiposTipo = em.merge(tiposTipo);
             }
             em.remove(item);
             em.getTransaction().commit();

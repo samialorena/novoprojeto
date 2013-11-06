@@ -5,10 +5,12 @@
 package modelo;
 
 import java.io.Serializable;
+import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 /**
@@ -27,7 +29,8 @@ public class Garcom implements Serializable {
     private String usuario;
     private String senha;
     @ManyToOne
-    private Pedido pedido;
+    @JoinColumn(name="garcomId")
+    private List<Pedido> pedidos;
     
     public Long getId() {
         return id;
@@ -94,12 +97,18 @@ public class Garcom implements Serializable {
         this.senha = senha;
     }
 
-    public Pedido getPedido() {
-        return pedido;
+    /**
+     * @return the pedidos
+     */
+    public List<Pedido> getPedidos() {
+        return pedidos;
     }
 
-    public void setPedido(Pedido pedido) {
-        this.pedido = pedido;
+    /**
+     * @param pedidos the pedidos to set
+     */
+    public void setPedidos(List<Pedido> pedidos) {
+        this.pedidos = pedidos;
     }
-    
+        
 }

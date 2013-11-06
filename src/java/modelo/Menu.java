@@ -5,10 +5,12 @@
 package modelo;
 
 import java.io.Serializable;
+import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 /**
@@ -22,9 +24,11 @@ public class Menu implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     @ManyToOne
-    private Item item;
+    @JoinColumn(name="menuId")
+    private List<Item> itens;
     @ManyToOne
-    private Pedido pedido;
+    @JoinColumn(name="menuId")
+    private List<Pedido> pedidos;
 
     public Long getId() {
         return id;
@@ -57,22 +61,5 @@ public class Menu implements Serializable {
     @Override
     public String toString() {
         return "modelo.Menu[ id=" + id + " ]";
-    }
-
-    public Item getItem() {
-        return item;
-    }
-
-    public void setItem(Item item) {
-        this.item = item;
-    }
-
-    public Pedido getPedido() {
-        return pedido;
-    }
-
-    public void setPedido(Pedido pedido) {
-        this.pedido = pedido;
-    }
-    
+    }    
 }

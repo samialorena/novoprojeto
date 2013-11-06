@@ -36,21 +36,23 @@ public class CaixaJpaController implements Serializable {
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            Pedido pedido = caixa.getPedido();
-            if (pedido != null) {
-                pedido = em.getReference(pedido.getClass(), pedido.getId());
-                caixa.setPedido(pedido);
-            }
             em.persist(caixa);
-            if (pedido != null) {
-                Caixa oldCaixaOfPedido = pedido.getCaixa();
-                if (oldCaixaOfPedido != null) {
-                    oldCaixaOfPedido.setPedido(null);
-                    oldCaixaOfPedido = em.merge(oldCaixaOfPedido);
-                }
-                pedido.setCaixa(caixa);
-                pedido = em.merge(pedido);
+            em.getTransaction().commit();
+        } finally {
+            if (em != null) {
+                em.close();
             }
+        }
+    }
+    public void createComEstado(Caixa caixa, Pedido pedido) {
+        EntityManager em = null;
+        try {
+            em = getEntityManager();
+            em.getTransaction().begin();
+            em.persist(caixa);
+            pedido = em.find(Pedido.class, pedido.getId());
+            pedido.addCaixa(caixa);
+            em.merge(pedido);
             em.getTransaction().commit();
         } finally {
             if (em != null) {
@@ -64,27 +66,7 @@ public class CaixaJpaController implements Serializable {
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            Caixa persistentCaixa = em.find(Caixa.class, caixa.getId());
-            Pedido pedidoOld = persistentCaixa.getPedido();
-            Pedido pedidoNew = caixa.getPedido();
-            if (pedidoNew != null) {
-                pedidoNew = em.getReference(pedidoNew.getClass(), pedidoNew.getId());
-                caixa.setPedido(pedidoNew);
-            }
             caixa = em.merge(caixa);
-            if (pedidoOld != null && !pedidoOld.equals(pedidoNew)) {
-                pedidoOld.setCaixa(null);
-                pedidoOld = em.merge(pedidoOld);
-            }
-            if (pedidoNew != null && !pedidoNew.equals(pedidoOld)) {
-                Caixa oldCaixaOfPedido = pedidoNew.getCaixa();
-                if (oldCaixaOfPedido != null) {
-                    oldCaixaOfPedido.setPedido(null);
-                    oldCaixaOfPedido = em.merge(oldCaixaOfPedido);
-                }
-                pedidoNew.setCaixa(caixa);
-                pedidoNew = em.merge(pedidoNew);
-            }
             em.getTransaction().commit();
         } catch (Exception ex) {
             String msg = ex.getLocalizedMessage();
@@ -113,11 +95,6 @@ public class CaixaJpaController implements Serializable {
                 caixa.getId();
             } catch (EntityNotFoundException enfe) {
                 throw new NonexistentEntityException("The caixa with id " + id + " no longer exists.", enfe);
-            }
-            Pedido pedido = caixa.getPedido();
-            if (pedido != null) {
-                pedido.setCaixa(null);
-                pedido = em.merge(pedido);
             }
             em.remove(caixa);
             em.getTransaction().commit();

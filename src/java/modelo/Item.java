@@ -5,11 +5,15 @@
 package modelo;
 
 import java.io.Serializable;
+import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 
 /**
  *
@@ -21,12 +25,14 @@ public class Item implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;  
-    @ManyToMany
-    private Ingrediente ingrediente;
+    @ManyToMany(mappedBy="itens", cascade = CascadeType.ALL)   
+    private List<Ingrediente> ingredientes;
     private String nome;
     //ver se precisa, pois pode ser um calculo sobre o preço dos ingredientes...
     private double preco;
-    private String tipo;
+    @OneToMany
+    @JoinColumn(name="itemId")
+    private List<Tipo> tipos;
     private int quantidade;
 
     public Long getId() {
@@ -61,21 +67,7 @@ public class Item implements Serializable {
     public String toString() {
         return "modelo.Item[ id=" + id + " ]";
     }
-
-    /**
-     * @return the ingrediente
-     */
-    public Ingrediente getIngrediente() {
-        return ingrediente;
-    }
-
-    /**
-     * @param ingrediente the ingrediente to set
-     */
-    public void setIngrediente(Ingrediente ingrediente) {
-        this.ingrediente = ingrediente;
-    }
-
+    
     /**
      * @return the preco
      */
@@ -89,21 +81,7 @@ public class Item implements Serializable {
     public void setPreco(double preco) {
         this.preco = preco;
     }
-
-    /**
-     * @return the tipo
-     */
-    public String getTipo() {
-        return tipo;
-    }
-
-    /**
-     * @param tipo the tipo to set
-     */
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
-
+    
     /**
      * @return the quantidade
      */
@@ -124,6 +102,28 @@ public class Item implements Serializable {
 
     public void setNome(String nome) {
         this.nome = nome;
+    }
+
+    /**
+     * @return the tipos
+     */
+    public List<Tipo> getTipos() {
+        return tipos;
+    }
+
+    /**
+     * @param tipos the tipos to set
+     */
+    public void setTipos(List<Tipo> tipos) {
+        this.tipos = tipos;
+    }
+
+    public List<Ingrediente> getIngredientes() {
+        return ingredientes;
+    }
+
+    public void setIngredientes(List<Ingrediente> ingredientes) {
+        this.ingredientes = ingredientes;
     }
     
 }

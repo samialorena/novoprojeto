@@ -14,7 +14,6 @@ import javax.persistence.EntityNotFoundException;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import modelo.Garcom;
-import modelo.Pedido;
 
 /**
  *
@@ -36,21 +35,7 @@ public class GarcomJpaController implements Serializable {
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            Pedido pedido = garcom.getPedido();
-            if (pedido != null) {
-                pedido = em.getReference(pedido.getClass(), pedido.getId());
-                garcom.setPedido(pedido);
-            }
             em.persist(garcom);
-            if (pedido != null) {
-                Garcom oldGarcomOfPedido = pedido.getGarcom();
-                if (oldGarcomOfPedido != null) {
-                    oldGarcomOfPedido.setPedido(null);
-                    oldGarcomOfPedido = em.merge(oldGarcomOfPedido);
-                }
-                pedido.setGarcom(garcom);
-                pedido = em.merge(pedido);
-            }
             em.getTransaction().commit();
         } finally {
             if (em != null) {
@@ -64,27 +49,7 @@ public class GarcomJpaController implements Serializable {
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            Garcom persistentGarcom = em.find(Garcom.class, garcom.getId());
-            Pedido pedidoOld = persistentGarcom.getPedido();
-            Pedido pedidoNew = garcom.getPedido();
-            if (pedidoNew != null) {
-                pedidoNew = em.getReference(pedidoNew.getClass(), pedidoNew.getId());
-                garcom.setPedido(pedidoNew);
-            }
             garcom = em.merge(garcom);
-            if (pedidoOld != null && !pedidoOld.equals(pedidoNew)) {
-                pedidoOld.setGarcom(null);
-                pedidoOld = em.merge(pedidoOld);
-            }
-            if (pedidoNew != null && !pedidoNew.equals(pedidoOld)) {
-                Garcom oldGarcomOfPedido = pedidoNew.getGarcom();
-                if (oldGarcomOfPedido != null) {
-                    oldGarcomOfPedido.setPedido(null);
-                    oldGarcomOfPedido = em.merge(oldGarcomOfPedido);
-                }
-                pedidoNew.setGarcom(garcom);
-                pedidoNew = em.merge(pedidoNew);
-            }
             em.getTransaction().commit();
         } catch (Exception ex) {
             String msg = ex.getLocalizedMessage();
@@ -113,11 +78,6 @@ public class GarcomJpaController implements Serializable {
                 garcom.getId();
             } catch (EntityNotFoundException enfe) {
                 throw new NonexistentEntityException("The garcom with id " + id + " no longer exists.", enfe);
-            }
-            Pedido pedido = garcom.getPedido();
-            if (pedido != null) {
-                pedido.setGarcom(null);
-                pedido = em.merge(pedido);
             }
             em.remove(garcom);
             em.getTransaction().commit();
